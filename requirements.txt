@@ -1,2 +1,10 @@
-azureml-sdk
-azureml-widgets
+azureml-interpret==1.41.0
+azureml-mlflow==1.41.0.post1
+azureml-opendatasets==1.41.0
+azureml-sdk==1.41.0
+azureml-widgets==1.41.0
+ipykernel==6.13.0
+jupyter==1.0.0 
+matplotlib==3.5.2
+pandas==1.4.2
+python-dotenv==0.20.0

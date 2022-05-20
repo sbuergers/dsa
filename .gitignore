@@ -135,3 +135,6 @@ local.settings.json
 config.json
 
 *.amltmp
+
+data
+outputs
