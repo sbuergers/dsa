@@ -1,6 +1,7 @@
 from dotenv import load_dotenv
 import os
 from pprint import pprint
+import pandas as pd
 
 from azureml.core import Datastore, Workspace, Dataset
 from azureml.exceptions import UserErrorException
@@ -29,9 +30,9 @@ class AzureData:
     """
     def __init__(
         self,
-        datastore_names: list,
+        datastore_names: list = ['raw', 'preprocessed', 'enriched'],
         account_name: str = None,
-        container_names: list = None,
+        container_names: list = ['raw', 'preprocessed', 'enriched'],
         account_key: str = None,
     ):
         self.workspace = Workspace.from_config()
@@ -175,7 +176,8 @@ class AzureData:
     
     def register_dataset(
         self, 
-        dataset: Dataset, 
+        dataset: Dataset,
+        name: str, 
         description: str = "",
         tags : dict = {},
         create_new_version : bool = True,
@@ -192,6 +194,8 @@ class AzureData:
         dataset : Dataset
             Dataset to register with machine learning workspace (either tabular or
             file based).
+        name : str
+            Name of the dataset
         description : str (default="")
             Short description of dataset
         tags : dict (default={})
@@ -202,8 +206,39 @@ class AzureData:
         """
         dataset.register(
             workspace=self.workspace,
-            name=dataset_name,
+            name=name,
             description=description,
             tags=tags,
             create_new_version=create_new_version,
         )
+    
+    def create_and_register_diabetes_dataset(self):
+        """This method retrieves the diabetes dataset from the microsoft azure ml
+        tutorials and registers it in the current workspace. This can be useful for
+        running tests or trying out the base classes of this repository. The dataset
+        will be called 'diabetes-dataset' and registered as such.
+        """
+        if 'raw' not in self.datastores.keys():
+            raise ValueError("This method only works when a 'raw' datastore is present.")
+
+        os.makedirs('../data', exist_ok=True)
+        diabetes = pd.read_csv(
+            'https://github.com/MicrosoftLearning/mslearn-dp100/blob/main/data/diabetes.csv?raw=true'
+        )
+        diabetes.to_csv('../data/diabetes.csv')
+        diabetes2 = pd.read_csv(
+            'https://github.com/MicrosoftLearning/mslearn-dp100/blob/main/data/diabetes2.csv?raw=true'
+        )
+        diabetes2.to_csv('../data/diabetes.csv')
+
+        self.upload_files(
+            datastore_name='raw', 
+            files=['../data/diabetes.csv', '../data/diabetes2.csv'], 
+            target_path='diabetes_data/',
+        )
+
+        diabetes_dataset = self.get_tabular_dataset(
+            datastore_name='raw', 
+            data_path='diabetes_data/*.csv',
+        )
+        self.register_dataset(diabetes_dataset, name='diabetes-dataset')

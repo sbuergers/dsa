@@ -30,8 +30,8 @@ class AzureCompute:
         max_nodes: int = 2,
     ):
         self.workspace = Workspace.from_config()
-        self.environment = set_environment(env_yml)
-        self.compute = get_or_create_compute(compute_name, vm_size, max_nodes)
+        self.environment = self.set_environment(env_yml)
+        self.compute = self.get_or_create_compute(compute_name, vm_size, max_nodes)
         
     def get_or_create_compute(
         self,
@@ -99,11 +99,11 @@ class AzureCompute:
         environment = Environment.from_conda_specification(env_name, env_yml)
         
         if register_env:
-            experiment.register(workspace=self.workspace)
+            environment.register(workspace=self.workspace)
 
         # Print the environment details
-        print(experiment.name, 'defined.')
-        print(experiment.python.conda_dependencies.serialize_to_string())
+        print(environment.name, 'defined.')
+        print(environment.python.conda_dependencies.serialize_to_string())
 
     def list_environments(self):
         """List all environments registered in the workspace.
