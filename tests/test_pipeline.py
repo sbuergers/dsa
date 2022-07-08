@@ -19,7 +19,9 @@ def ap():
         account_key=account_key, 
         compute_name='azdatascientist',
     )
-    return ap
+    ap.create_and_register_diabetes_dataset()
+    yield ap
+    ap.delete_compute()
 
 
 class TestAzurePipeline:
@@ -59,3 +61,5 @@ class TestAzurePipeline:
     
     def test_list_registered_models(self, ap):
         ap.list_registered_models()
+
+

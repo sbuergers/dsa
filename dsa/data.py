@@ -1,5 +1,6 @@
 from dotenv import load_dotenv
 import os
+from pathlib import Path, PosixPath
 from pprint import pprint
 import pandas as pd
 
@@ -35,6 +36,7 @@ class AzureData:
         container_names: list = ['raw', 'preprocessed', 'enriched'],
         account_key: str = None,
     ):
+        self.root_path = Path(__file__).parent.parent
         self.workspace = Workspace.from_config()
         if account_key is None:
             account_key = os.environ.get('STORAGE_ACCOUNT_KEY')
@@ -49,6 +51,24 @@ class AzureData:
                 account_key,
             )
             self.blob_services[datastore_name] = self.datastores[datastore_name].blob_service
+
+            existing_containers = [
+                c.name for c in self.blob_services[datastore_name].list_containers()
+            ]
+            if container_name not in existing_containers:
+                self.blob_services[datastore_name].create_container(container_name)        
+    
+    def get_or_create_container(
+        self,
+        container_name: str,
+    ):
+        """Create container name in blob store if it does not exist.
+        
+        Parameters
+        ----------
+        container_name : str
+        """
+        blob_service_client = BlobServiceClient.from_connection_string(connect_str)
 
     def get_or_create_datastore(
         self,
@@ -212,28 +232,36 @@ class AzureData:
             create_new_version=create_new_version,
         )
     
-    def create_and_register_diabetes_dataset(self):
+    def create_and_register_diabetes_dataset(self, root_folder: PosixPath = Path('')):
         """This method retrieves the diabetes dataset from the microsoft azure ml
         tutorials and registers it in the current workspace. This can be useful for
         running tests or trying out the base classes of this repository. The dataset
         will be called 'diabetes-dataset' and registered as such.
+        
+        Parameters
+        ----------
+        root_folder : PosixPath (default=Path(''))
+            Folder that contains the `data` folder
         """
         if 'raw' not in self.datastores.keys():
             raise ValueError("This method only works when a 'raw' datastore is present.")
 
-        os.makedirs('../data', exist_ok=True)
+        os.makedirs(root_folder / 'data', exist_ok=True)
         diabetes = pd.read_csv(
             'https://github.com/MicrosoftLearning/mslearn-dp100/blob/main/data/diabetes.csv?raw=true'
         )
-        diabetes.to_csv('../data/diabetes.csv')
+        diabetes.to_csv(root_folder / Path('data/diabetes.csv'))
         diabetes2 = pd.read_csv(
             'https://github.com/MicrosoftLearning/mslearn-dp100/blob/main/data/diabetes2.csv?raw=true'
         )
-        diabetes2.to_csv('../data/diabetes.csv')
+        diabetes2.to_csv(root_folder / Path('data/diabetes2.csv'))
 
         self.upload_files(
             datastore_name='raw', 
-            files=['../data/diabetes.csv', '../data/diabetes2.csv'], 
+            files=[
+                str(root_folder / Path('data/diabetes.csv')), 
+                str(root_folder / Path('data/diabetes2.csv'))
+            ], 
             target_path='diabetes_data/',
         )
 

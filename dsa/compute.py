@@ -2,7 +2,7 @@ from pathlib import Path
 
 from azureml.core import Workspace, Environment
 from azureml.core.compute import ComputeTarget, AmlCompute
-from azureml.core.compute_target import ComputeTargetException
+from azureml.exceptions import ComputeTargetException
 
 
 class AzureCompute:
@@ -70,6 +70,29 @@ class AzureCompute:
 
         return compute
     
+    def delete_compute(self, compute_instance: ComputeTarget = None):
+        """Delete compute instance. If compute_name is not given, will delete
+        self.compute.
+        
+        Parameters
+        ----------
+        compute_instance: ComputeTarget (default=None)
+            Azure compute instance to delete.
+        """
+        if compute_instance is None:
+            compute_instance = self.compute
+
+        try:
+            print('Deleting compute instance.')
+            compute_instance.delete()
+            compute_instance.wait_for_completion(is_delete_operation=True)
+
+        except ComputeTargetException:  # still throws an error even though it shouldn't
+            if compute_instance.status is None:
+                print('Successfully deleted compute target.')
+            else:
+                print('Something went wrong deleting compute instance.')
+
     def set_environment(
         self,
         env_yml: str, 

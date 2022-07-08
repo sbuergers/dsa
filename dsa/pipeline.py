@@ -1,4 +1,5 @@
 from typing import Union
+from pathlib import Path
 
 from azureml.core import Workspace, Environment, Model, Experiment, Run
 from azureml.core.runconfig import RunConfiguration
@@ -66,11 +67,12 @@ class AzurePipeline(AzureData, AzureCompute):
         # Could also call super().__init__(self), but it requires absolutely
         # no conflicts between parent classses, so this is safer.
         keys_data = ['datastore_names', 'account_name', 'container_names', 'account_key']
-        kwargs_data = {key: kwargs.get(key) for key in keys_data}
+        kwargs_data = {key: kwargs.get(key) for key in keys_data if key in kwargs}
         AzureData.__init__(self, **kwargs_data)
 
         keys_compute = ['env_yml', 'compute_name', 'vm_size', 'max_nodes']
-        kwargs_compute = {key: kwargs.get(key) for key in keys_compute}
+        kwargs_compute = {key: kwargs.get(key) for key in keys_compute if key in kwargs}
+        print(kwargs_compute)
         AzureCompute.__init__(self, **kwargs_compute)
         
         self.pipeline = None
@@ -92,12 +94,11 @@ class AzurePipeline(AzureData, AzureCompute):
         return pipeline_run_config
     
     def define_pipeline_steps(self):
-        """This is a placeholder function that needs to filled in for each project.
-        This defines all necessary script steps.
-        
-        See:
-        https://github.com/MicrosoftLearning/mslearn-dp100/blob/main/08%20-%20Create%20a%20Pipeline.ipynb
-        """
+        # This is a placeholder function that needs to filled in for each project.
+        # This defines all necessary script steps.
+        #
+        # See:
+        # https://github.com/MicrosoftLearning/mslearn-dp100/blob/main/08%20-%20Create%20a%20Pipeline.ipynb
         pass
     
     def create_pipeline(self) -> Pipeline:
@@ -121,7 +122,7 @@ class AzurePipeline(AzureData, AzureCompute):
     
     def get_or_create_experiment(
         self, 
-        experiment_name: str = 'default-experiment'
+        experiment_name: str = 'default-experiment',
     ) -> Experiment:
         """Get existing azure ml experiment or create new experiment
         
@@ -146,7 +147,8 @@ class AzurePipeline(AzureData, AzureCompute):
         regenerate_outputs: bool = True,
         show_output: bool = True,
     ) -> PipelineRun:
-        """Run the pipeline.
+        """Run the pipeline. If no pipeline object is passed, tries to run object
+        in self.pipeline.
         
         Parameters
         ----------
@@ -165,7 +167,7 @@ class AzurePipeline(AzureData, AzureCompute):
         if pipeline is not None:
             pipeline_run = self.experiment.submit(
                 pipeline, 
-                regenerate_outputs=regenerate_outputs
+                regenerate_outputs=regenerate_outputs,
             )
             pipeline_run.wait_for_completion(show_output=show_output)
             
@@ -266,7 +268,7 @@ class ExampleAzurePipeline(AzurePipeline):
         # Step 1, Run the data prep script
         prep_step = PythonScriptStep(
             name = "Prepare Data",
-            source_directory = 'dsa/pipeline_steps',
+            source_directory = self.root_path / Path('dsa/pipeline_steps'),
             script_name = "prep_diabetes.py",
             arguments = [
                 '--input-data', diabetes_ds.as_named_input('raw_data'),
@@ -280,7 +282,7 @@ class ExampleAzurePipeline(AzurePipeline):
         # Step 2, run the training script
         train_step = PythonScriptStep(
             name = "Train and Register Model",
-            source_directory = "dsa/pipeline_steps",
+            source_directory = self.root_path / Path("dsa/pipeline_steps"),
             script_name = "train_diabetes.py",
             arguments = ['--training-data', prepped_data.as_input()],
             compute_target = self.compute,
