@@ -144,6 +144,7 @@ class AzurePipeline(AzureData, AzureCompute):
         pipeline: Pipeline = None,
         experiment_name: str = None,
         regenerate_outputs: bool = True,
+        show_output: bool = True,
     ) -> PipelineRun:
         """Run the pipeline.
         
@@ -166,7 +167,7 @@ class AzurePipeline(AzureData, AzureCompute):
                 pipeline, 
                 regenerate_outputs=regenerate_outputs
             )
-            pipeline_run.wait_for_completion(show_output=True)
+            pipeline_run.wait_for_completion(show_output=show_output)
             
         elif self.pipeline is None:
             raise ValueError("No pipeline object has been created yet, nothing to run.")
@@ -176,7 +177,7 @@ class AzurePipeline(AzureData, AzureCompute):
                 self.pipeline, 
                 regenerate_outputs=regenerate_outputs
             )
-            pipeline_run.wait_for_completion(show_output=True)
+            pipeline_run.wait_for_completion(show_output=show_output)
 
         self.pipeline_run = pipeline_run
         
