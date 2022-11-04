@@ -13,9 +13,9 @@ load_dotenv()
 class AzureData:
     """Base class for connecting to azure blob storage container. This class is
     wrapping several common methods from preparing datasets for azure machine learning.
-    See: 
+    See:
     https://github.com/MicrosoftLearning/mslearn-dp100/blob/main/06%20-%20Work%20with%20Data.ipynb
-    
+
     Parameters
     ----------
     datastore_names : list
@@ -56,19 +56,7 @@ class AzureData:
                 c.name for c in self.blob_services[datastore_name].list_containers()
             ]
             if container_name not in existing_containers:
-                self.blob_services[datastore_name].create_container(container_name)        
-    
-    def get_or_create_container(
-        self,
-        container_name: str,
-    ):
-        """Create container name in blob store if it does not exist.
-        
-        Parameters
-        ----------
-        container_name : str
-        """
-        blob_service_client = BlobServiceClient.from_connection_string(connect_str)
+                self.blob_services[datastore_name].create_container(container_name)
 
     def get_or_create_datastore(
         self,
@@ -79,7 +67,7 @@ class AzureData:
     ) -> Datastore:
         """Establish datastore connection or register new datastore if it does not
         yet exist.
-        
+
         Parameters
         ----------
         datastore_name : str
@@ -91,7 +79,7 @@ class AzureData:
             Azure blob container name used to create new datastore connection
         account_key : str (default=None)
             Storage account key used to create new datastore connection
-        
+
         Returns
         -------
         datastore : azureml.core.datastore.Datastore
@@ -110,7 +98,7 @@ class AzureData:
             )
 
         return datastore
-    
+
     def list_datastores(self):
         """Convenience method for listing all datastores in the class and workspace.
         """
@@ -142,7 +130,7 @@ class AzureData:
         return Dataset.Tabular.from_delimited_files(
             path=(self.datastores.get(datastore_name), data_path)
         )
-    
+
     def get_file_dataset(self, datastore_name: str, data_path: str) -> Dataset:
         """Get file dataset from data_path from Datastore from storage account.
 
@@ -162,7 +150,7 @@ class AzureData:
         return Dataset.Files.from_files(
             path=(self.datastores.get(datastore_name), data_path)
         )
-    
+
     def upload_files(
         self,
         datastore_name: str,
@@ -173,7 +161,7 @@ class AzureData:
     ):
         """Upload `files` to `data_path` to blob store container connected to
         `datastore_name` (wrapper for {{datastore}}.upload_files())
-        
+
         Parameters
         ----------
         datastore_name : str
@@ -193,22 +181,22 @@ class AzureData:
             overwrite=overwrite,
             show_progress=show_progress,
         )
-    
+
     def register_dataset(
-        self, 
+        self,
         dataset: Dataset,
-        name: str, 
+        name: str,
         description: str = "",
-        tags : dict = {},
-        create_new_version : bool = True,
+        tags: dict = {},
+        create_new_version: bool = True,
     ):
         """Register specific dataset with machine learning workspace for easy
         use later on. Wrapper for Dataset.register using the current workspace.
-        
+
         NOTE: This is not strictly necessary, but can be convient when multiple
         scripts use the same dataset. The versioning can also be useful to track
         which version of a dataset was used for obtaining specific results.
-        
+
         Parameters
         ----------
         dataset : Dataset
@@ -231,13 +219,13 @@ class AzureData:
             tags=tags,
             create_new_version=create_new_version,
         )
-    
+
     def create_and_register_diabetes_dataset(self, root_folder: PosixPath = Path('')):
         """This method retrieves the diabetes dataset from the microsoft azure ml
         tutorials and registers it in the current workspace. This can be useful for
         running tests or trying out the base classes of this repository. The dataset
         will be called 'diabetes-dataset' and registered as such.
-        
+
         Parameters
         ----------
         root_folder : PosixPath (default=Path(''))
@@ -248,25 +236,25 @@ class AzureData:
 
         os.makedirs(root_folder / 'data', exist_ok=True)
         diabetes = pd.read_csv(
-            'https://github.com/MicrosoftLearning/mslearn-dp100/blob/main/data/diabetes.csv?raw=true'
+            'https://github.com/MicrosoftLearning/mslearn-dp100/blob/main/data/diabetes.csv?raw=true'  # noqa: E501
         )
         diabetes.to_csv(root_folder / Path('data/diabetes.csv'))
         diabetes2 = pd.read_csv(
-            'https://github.com/MicrosoftLearning/mslearn-dp100/blob/main/data/diabetes2.csv?raw=true'
+            'https://github.com/MicrosoftLearning/mslearn-dp100/blob/main/data/diabetes2.csv?raw=true'  # noqa: E501
         )
         diabetes2.to_csv(root_folder / Path('data/diabetes2.csv'))
 
         self.upload_files(
-            datastore_name='raw', 
+            datastore_name='raw',
             files=[
-                str(root_folder / Path('data/diabetes.csv')), 
+                str(root_folder / Path('data/diabetes.csv')),
                 str(root_folder / Path('data/diabetes2.csv'))
-            ], 
+            ],
             target_path='diabetes_data/',
         )
 
         diabetes_dataset = self.get_tabular_dataset(
-            datastore_name='raw', 
+            datastore_name='raw',
             data_path='diabetes_data/*.csv',
         )
         self.register_dataset(diabetes_dataset, name='diabetes-dataset')

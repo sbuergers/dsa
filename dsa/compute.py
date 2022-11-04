@@ -8,7 +8,7 @@ from azureml.exceptions import ComputeTargetException
 class AzureCompute:
     """Convenience class for creating or connecting to and managing
     an Azure compute instance and environment.
-    
+
     Parameters
     ----------
     env_yml : str
@@ -32,7 +32,7 @@ class AzureCompute:
         self.workspace = Workspace.from_config()
         self.environment = self.set_environment(env_yml)
         self.compute = self.get_or_create_compute(compute_name, vm_size, max_nodes)
-        
+
     def get_or_create_compute(
         self,
         compute_name: str,
@@ -51,7 +51,7 @@ class AzureCompute:
             https://docs.microsoft.com/en-us/azure/virtual-machines/sizes-gpu
         max_nodes : int (default=2)
             Maximum number of nodes to use
-        
+
         Returns
         -------
         compute : ComputeTarget
@@ -69,11 +69,11 @@ class AzureCompute:
             print('Created compute "{}"'.format(compute_name))
 
         return compute
-    
+
     def delete_compute(self, compute_instance: ComputeTarget = None):
         """Delete compute instance. If compute_name is not given, will delete
         self.compute.
-        
+
         Parameters
         ----------
         compute_instance: ComputeTarget (default=None)
@@ -95,12 +95,12 @@ class AzureCompute:
 
     def set_environment(
         self,
-        env_yml: str, 
-        env_name: str = None, 
-        register_env : bool = True
+        env_yml: str,
+        env_name: str = None,
+        register_env: bool = True
     ) -> Environment:
         """Set environment based on .yml file.
-        
+
         Parameters
         ----------
         env_yml : str
@@ -110,7 +110,7 @@ class AzureCompute:
             (without the extension)
         register_env : bool (default=True)
             Whether to register the environment in the ML workspace
-        
+
         Returns
         -------
         env : Environment
@@ -120,7 +120,7 @@ class AzureCompute:
             env_name = Path(env_yml).stem
 
         environment = Environment.from_conda_specification(env_name, env_yml)
-        
+
         if register_env:
             environment.register(workspace=self.workspace)
 
@@ -133,4 +133,4 @@ class AzureCompute:
         """
         print('Environments registered in workspace {}:\n'.format(self.workspace.name))
         for env in Environment.list(workspace=self.workspace):
-            print("Name",env)
+            print("Name", env)

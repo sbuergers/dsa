@@ -1,4 +1,4 @@
-# From https://github.com/MicrosoftLearning/mslearn-dp100/blob/main/08%20-%20Create%20a%20Pipeline.ipynb
+# From https://github.com/MicrosoftLearning/mslearn-dp100/blob/main/08%20-%20Create%20a%20Pipeline.ipynb  # noqa: E501
 
 from azureml.core import Run, Model
 import argparse
@@ -23,11 +23,22 @@ run = Run.get_context()
 
 # load the prepared data file in the training folder
 print("Loading Data...")
-file_path = os.path.join(training_data,'data.csv')
+file_path = os.path.join(training_data, 'data.csv')
 diabetes = pd.read_csv(file_path)
 
 # Separate features and labels
-X, y = diabetes[['Pregnancies','PlasmaGlucose','DiastolicBloodPressure','TricepsThickness','SerumInsulin','BMI','DiabetesPedigree','Age']].values, diabetes['Diabetic'].values
+X, y = diabetes[
+    [
+        'Pregnancies',
+        'PlasmaGlucose',
+        'DiastolicBloodPressure',
+        'TricepsThickness',
+        'SerumInsulin',
+        'BMI',
+        'DiabetesPedigree',
+        'Age'
+    ]
+].values, diabetes['Diabetic'].values
 
 # Split data into training set and test set
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.30, random_state=0)
@@ -44,12 +55,12 @@ run.log('Accuracy', np.float(acc))
 
 # calculate AUC
 y_scores = model.predict_proba(X_test)
-auc = roc_auc_score(y_test,y_scores[:,1])
+auc = roc_auc_score(y_test, y_scores[:, 1])
 print('AUC: ' + str(auc))
 run.log('AUC', np.float(auc))
 
 # plot ROC curve
-fpr, tpr, thresholds = roc_curve(y_test, y_scores[:,1])
+fpr, tpr, thresholds = roc_curve(y_test, y_scores[:, 1])
 fig = plt.figure(figsize=(6, 4))
 # Plot the diagonal 50% line
 plt.plot([0, 1], [0, 1], 'k--')
@@ -58,7 +69,7 @@ plt.plot(fpr, tpr)
 plt.xlabel('False Positive Rate')
 plt.ylabel('True Positive Rate')
 plt.title('ROC Curve')
-run.log_image(name = "ROC", plot = fig)
+run.log_image(name="ROC", plot=fig)
 plt.show()
 
 # Save the trained model in the outputs folder
@@ -70,9 +81,9 @@ joblib.dump(value=model, filename=model_file)
 # Register the model
 print('Registering model...')
 Model.register(workspace=run.experiment.workspace,
-               model_path = model_file,
-               model_name = 'diabetes_model',
-               tags={'Training context':'Pipeline'},
+               model_path=model_file,
+               model_name='diabetes_model',
+               tags={'Training context': 'Pipeline'},
                properties={'AUC': np.float(auc), 'Accuracy': np.float(acc)})
 
 run.complete()

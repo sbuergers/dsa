@@ -1,4 +1,4 @@
-# From https://github.com/MicrosoftLearning/mslearn-dp100/blob/main/08%20-%20Create%20a%20Pipeline.ipynb
+# From https://github.com/MicrosoftLearning/mslearn-dp100/blob/main/08%20-%20Create%20a%20Pipeline.ipynb  # noqa: E501
 
 import os
 import argparse
@@ -9,7 +9,13 @@ from sklearn.preprocessing import MinMaxScaler
 # Get parameters
 parser = argparse.ArgumentParser()
 parser.add_argument("--input-data", type=str, dest='raw_dataset_id', help='raw dataset')
-parser.add_argument('--prepped-data', type=str, dest='prepped_data', default='prepped_data', help='Folder for results')
+parser.add_argument(
+    '--prepped-data',
+    type=str,
+    dest='prepped_data',
+    default='prepped_data',
+    help='Folder for results'
+)
 args = parser.parse_args()
 save_folder = args.prepped_data
 
@@ -29,7 +35,15 @@ diabetes = diabetes.dropna()
 
 # Normalize the numeric columns
 scaler = MinMaxScaler()
-num_cols = ['Pregnancies','PlasmaGlucose','DiastolicBloodPressure','TricepsThickness','SerumInsulin','BMI','DiabetesPedigree']
+num_cols = [
+    'Pregnancies',
+    'PlasmaGlucose',
+    'DiastolicBloodPressure',
+    'TricepsThickness',
+    'SerumInsulin',
+    'BMI',
+    'DiabetesPedigree'
+]
 diabetes[num_cols] = scaler.fit_transform(diabetes[num_cols])
 
 # Log processed rows
@@ -39,7 +53,7 @@ run.log('processed_rows', row_count)
 # Save the prepped data
 print("Saving Data...")
 os.makedirs(save_folder, exist_ok=True)
-save_path = os.path.join(save_folder,'data.csv')
+save_path = os.path.join(save_folder, 'data.csv')
 diabetes.to_csv(save_path, index=False, header=True)
 
 # End the run
