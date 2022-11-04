@@ -10,5 +10,5 @@ def test_compute():
     )
 
     ac.list_environments()
-    
+
     ac.delete_compute()
